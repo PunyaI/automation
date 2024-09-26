@@ -24,6 +24,7 @@ type Logger struct {
 	logger    *log.Logger
 	logFile   *os.File
 	formatter log.Formatter
+	isSimple  bool
 }
 
 var _ Interface = (*Logger)(nil)
@@ -57,6 +58,7 @@ func New(level, filename string, formatter log.Formatter) *Logger {
 		logger:    &logger,
 		logFile:   file,
 		formatter: formatter,
+		isSimple:  false,
 	}
 }
 
@@ -72,13 +74,14 @@ func NewSimple(level string) *Logger {
 	output = log.MultiLevelWriter(writer)
 	logger := log.New(output).Level(lev).With().Timestamp().Logger()
 	return &Logger{
-		logger: &logger,
+		logger:   &logger,
+		isSimple: true,
 	}
 }
 
 func (l *Logger) SetLogLevel(level string) {
 	var newLogger *Logger
-	if l.logFile != nil {
+	if l.isSimple {
 		newLogger = NewSimple(level)
 	} else {
 		newLogger = New(level, l.logFile.Name(), l.formatter)
